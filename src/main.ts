@@ -9,9 +9,6 @@ async function main() {
         const path = getInput("path");
         const runNumber = getInput("run-number") || null;
 
-        console.log("cwd:", process.cwd());
-        console.log("__dirname", __dirname);
-
         const paths = path.split("\n").map((str) => str.trim()).filter(Boolean);
         const uniquePaths = Array.from(new Set(paths));
 
