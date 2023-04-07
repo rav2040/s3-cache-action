@@ -12,12 +12,17 @@ async function main() {
         console.log("cwd:", process.cwd());
         console.log("__dirname", __dirname);
 
-        const localPath = join(process.cwd(), path);
+        const paths = path.split("\n").map((str) => str.trim()).filter(Boolean);
+        const uniquePaths = Array.from(new Set(paths));
 
-        const pathA = runNumber === null ? localPath : `${bucket}/${runNumber}`;
-        const pathB = runNumber === null ? `${bucket}/${gitHubContext.runNumber}` : localPath;
+        uniquePaths.forEach((path) => {
+            const localPath = join(process.cwd(), path);
 
-        execFileSync("aws", ["s3", "sync", pathA, pathB, "--delete"], { stdio: "inherit" });
+            const pathA = runNumber === null ? localPath : `${bucket}/${runNumber}`;
+            const pathB = runNumber === null ? `${bucket}/${gitHubContext.runNumber}` : localPath;
+
+            execFileSync("aws", ["s3", "sync", pathA, pathB, "--delete"], { stdio: "inherit" });
+        });
     } catch (err) {
         if (err instanceof Error) setFailed(err);
     }
