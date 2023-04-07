@@ -1,0 +1,15 @@
+name: "S3 Cache"
+description: "Store objects in a designated S3 bucket between jobs."
+inputs:
+  bucket:
+    description: "An S3 bucket."
+    required: true
+  path:
+    description: "One or more file or directory paths to sync."
+    required: true
+  run-number:
+    description: "The number of a previous workflow run."
+    required: false
+runs:
+  using: "node16"
+  main: "lib/main.js"
