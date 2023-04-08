@@ -14,11 +14,16 @@ async function main() {
 
         uniquePaths.forEach((path) => {
             const localPath = join(process.cwd(), path);
+            const remotePath = `s3://${bucket}/${runNumber ?? gitHubContext.runNumber}/${path}`
 
-            const pathA = runNumber === null ? localPath : `s3://${bucket}/${runNumber}/${path}`;
-            const pathB = runNumber === null ? `s3://${bucket}/${gitHubContext.runNumber}/${path}` : localPath;
+            const srcPath = runNumber === null ? localPath : remotePath;
+            const destPath = runNumber === null ? remotePath : localPath;
 
-            execFileSync("aws", ["s3", "sync", pathA, pathB, "--delete", "--no-progress"], { stdio: "inherit" });
+            if (runNumber === null) {
+                execFileSync("aws", ["s3", "rm", destPath, "--recursive", "--quiet"], { stdio: "inherit" });
+            }
+
+            execFileSync("aws", ["s3", "cp", srcPath, destPath, "--recursive", "--no-progress"], { stdio: "inherit" });
         });
     } catch (err) {
         if (err instanceof Error) setFailed(err);
