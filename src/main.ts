@@ -15,8 +15,8 @@ async function main() {
         uniquePaths.forEach((path) => {
             const localPath = join(process.cwd(), path);
 
-            const pathA = runNumber === null ? localPath : `s3://${bucket}/${runNumber}`;
-            const pathB = runNumber === null ? `s3://${bucket}/${gitHubContext.runNumber}` : localPath;
+            const pathA = runNumber === null ? localPath : `s3://${bucket}/${runNumber}/${path}`;
+            const pathB = runNumber === null ? `s3://${bucket}/${gitHubContext.runNumber}/${path}` : localPath;
 
             execFileSync("aws", ["s3", "sync", pathA, pathB, "--delete"], { stdio: "inherit" });
         });
