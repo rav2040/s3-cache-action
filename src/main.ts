@@ -1,6 +1,7 @@
-import { execFileSync } from "child_process";
 import { join } from "path";
+import { readFile } from "fs/promises";
 import { getInput, setFailed } from "@actions/core";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import globby from "globby";
 
 const PATH_SPLIT_REGEX = /\s+(?=([^"]*"[^"]*")*[^"]*$)/g;
@@ -10,7 +11,6 @@ async function main() {
         const bucket = getInput("bucket");
         const path = getInput("path");
         const key = getInput("key");
-        const download = getInput("download") === "true";
 
         const paths = (await Promise.all(
             path.split(PATH_SPLIT_REGEX)
@@ -19,24 +19,22 @@ async function main() {
         )).flat();
         const uniquePaths = Array.from(new Set(paths));
 
-        console.log("uniquePaths", uniquePaths);
+        const s3 = new S3Client({});
 
-        uniquePaths.forEach((path) => {
-            const localPath = join(process.cwd(), path);
-            const remotePath = `s3://${bucket}/${key}/${path}`;
+        await Promise.all(uniquePaths.map(async (path) => {
+            const filePath = join(process.cwd(), path);
+            const file = await readFile(filePath);
 
-            const srcPath = download ? remotePath : localPath;
-            const destPath = download ? localPath : remotePath;
+            const putObjectCommand = new PutObjectCommand({
+                Bucket: bucket,
+                Key: `${key}/${path}`,
+                Body: file
+            });
 
-            execFileSync("aws", [
-                "s3",
-                "cp",
-                srcPath,
-                destPath,
-                "--recursive",
-                "--no-progress"
-            ], { stdio: "inherit" });
-        });
+            await s3.send(putObjectCommand);
+
+            console.info("Uploaded:", filePath);
+        }))
     } catch (err) {
         if (err instanceof Error) setFailed(err);
     }
