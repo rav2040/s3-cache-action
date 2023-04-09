@@ -19,6 +19,8 @@ async function main() {
         )).flat();
         const uniquePaths = Array.from(new Set(paths));
 
+        console.log("uniquePaths", uniquePaths);
+
         uniquePaths.forEach((path) => {
             const localPath = join(process.cwd(), path);
             const remotePath = `s3://${bucket}/${key}/${path}`;
