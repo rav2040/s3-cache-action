@@ -1,5 +1,5 @@
 {
-  "name": "s3-cache-action",
+  "name": "s3-upload-action",
   "version": "1.0.10",
   "author": "Stuart Kennedy",
   "main": "lib/main.js",
