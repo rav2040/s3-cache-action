@@ -7,9 +7,11 @@ inputs:
   path:
     description: "One or more file or directory paths to sync."
     required: true
-  run-number:
-    description: "The number of a previous workflow run."
-    required: false
+  key:
+    description: "A unique identifier."
+    required: true
+  download:
+    description: "If true, will download previously uploaded files based on the provided key."
 runs:
   using: "node16"
   main: "lib/main.js"
