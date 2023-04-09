@@ -10,7 +10,7 @@ async function main() {
     try {
         const bucket = getInput("bucket");
         const path = getInput("path");
-        const key = getInput("key");
+        const prefix = getInput("prefix");
 
         const paths = (await Promise.all(
             path.split(PATH_SPLIT_REGEX)
@@ -27,7 +27,7 @@ async function main() {
 
             const putObjectCommand = new PutObjectCommand({
                 Bucket: bucket,
-                Key: `${key}/${path}`,
+                Key: [prefix, path].filter(Boolean).join("/"),
                 Body: file
             });
 
