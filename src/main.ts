@@ -17,7 +17,7 @@ async function main() {
         console.log("paths:", paths);
 
         const uniquePaths = Array.from(new Set(paths))
-            .filter((a, i, arr) => !arr.some((b, j) => i !== j && b.at(-1) !== "/" && a.startsWith(b)));
+            .filter((a, _, arr) => !arr.some((b) => a !== b && a.startsWith(b)));
 
         console.log("uniquePaths:", uniquePaths);
 
