@@ -13,8 +13,13 @@ async function main() {
         const paths = (await Promise.all(path.map((path) => {
             return globby(path, { onlyFiles: false, markDirectories: true });
         }))).flat();
+
+        console.log("paths:", paths);
+
         const uniquePaths = Array.from(new Set(paths))
             .filter((a, i, arr) => !arr.some((b, j) => i !== j && a.startsWith(b)));
+
+        console.log("uniquePaths:", uniquePaths);
 
         const s3 = new S3Client({});
 
