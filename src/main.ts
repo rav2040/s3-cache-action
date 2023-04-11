@@ -10,20 +10,24 @@ async function main() {
         const path = getMultilineInput("path", { required: true });
         const prefix = getInput("prefix");
 
-        const paths = (await Promise.all(path.map((path) => globby(path)))).flat();
-        const uniquePaths = Array.from(new Set(paths));
+        const paths = (await Promise.all(path.map((path) => {
+            return globby(path, { onlyFiles: false, markDirectories: true });
+        }))).flat();
+        const uniquePaths = Array.from(new Set(paths))
+            .filter((a, i, arr) => !arr.some((b, j) => i !== j && a.startsWith(b)));
 
         const s3 = new S3Client({});
 
         await Promise.all(uniquePaths.map(async (path) => {
+            const isDir = path.at(-1) === "/";
             const key = posix.join(prefix, path);
             const filePath = join(process.cwd(), path);
-            const stream = createReadStream(filePath);
+            const body = isDir ? undefined : createReadStream(filePath);
 
             const putObjectCommand = new PutObjectCommand({
                 Bucket: bucket,
                 Key: key,
-                Body: stream
+                Body: body
             });
 
             await s3.send(putObjectCommand);
