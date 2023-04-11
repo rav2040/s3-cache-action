@@ -1,34 +1,29 @@
-import { join } from "path";
-import { readFile } from "fs/promises";
-import { getInput, setFailed } from "@actions/core";
+import { join, posix } from "path";
+import { createReadStream } from "fs";
+import { getInput, getMultilineInput, setFailed } from "@actions/core";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import globby from "globby";
 
-const PATH_SPLIT_REGEX = /\s+(?=([^"]*"[^"]*")*[^"]*$)/g;
-
 async function main() {
     try {
-        const bucket = getInput("bucket");
-        const path = getInput("path");
+        const bucket = getInput("bucket", { required: true });
+        const path = getMultilineInput("path", { required: true });
         const prefix = getInput("prefix");
 
-        const paths = (await Promise.all(
-            path.split(PATH_SPLIT_REGEX)
-                .filter(Boolean)
-                .map((path) => globby(path))
-        )).flat();
+        const paths = (await Promise.all(path.map((path) => globby(path)))).flat();
         const uniquePaths = Array.from(new Set(paths));
 
         const s3 = new S3Client({});
 
         await Promise.all(uniquePaths.map(async (path) => {
+            const key = posix.join(prefix, path);
             const filePath = join(process.cwd(), path);
-            const file = await readFile(filePath);
+            const stream = createReadStream(filePath);
 
             const putObjectCommand = new PutObjectCommand({
                 Bucket: bucket,
-                Key: [prefix, path].filter(Boolean).join("/"),
-                Body: file
+                Key: key,
+                Body: stream
             });
 
             await s3.send(putObjectCommand);
