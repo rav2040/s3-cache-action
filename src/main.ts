@@ -4,6 +4,8 @@ import { getInput, getMultilineInput, setFailed } from "@actions/core";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import globby from "globby";
 
+const s3 = new S3Client({});
+
 async function main() {
     try {
         const bucket = getInput("bucket", { required: true });
@@ -16,9 +18,11 @@ async function main() {
 
         // Filter out directories that are common prefixes.
         const uniquePaths = Array.from(new Set(paths))
-            .filter((a, i, arr) => !arr.some((b, j) => i !== j && b.startsWith(a) && b.length > a.length));
+            .filter((a, i, arr) => {
+                return a.at(-1) !== "/" || !arr.some((b, j) => i !== j && b.startsWith(a) && b.length > a.length)
+            });
 
-        const s3 = new S3Client({});
+        let filesUploaded = 0;
 
         await Promise.all(uniquePaths.map(async (path) => {
             const isDir = path.at(-1) === "/";
@@ -34,8 +38,12 @@ async function main() {
 
             await s3.send(putObjectCommand);
 
+            filesUploaded++;
+
             console.info("Uploaded:", filePath);
-        }))
+        }));
+
+        console.log("### Total files uploaded:", filesUploaded, "###");
     } catch (err) {
         if (err instanceof Error) setFailed(err);
     }
