@@ -1,6 +1,6 @@
 {
   "name": "s3-upload-action",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "author": "Stuart Kennedy",
   "main": "lib/main.js",
   "license": "MIT",
