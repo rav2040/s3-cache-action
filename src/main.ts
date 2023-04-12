@@ -14,16 +14,22 @@ async function main() {
         const prefix = getInput("prefix");
 
         const paths = (await Promise.all(path.map((path) => {
-            return globby(path/* , { onlyFiles: false, markDirectories: true } */);
+            return globby(path, { onlyFiles: false, markDirectories: true });
         }))).flat();
 
-        console.log("numPaths:", paths.length);
+        const pathsOnlyFiles = (await Promise.all(path.map((path) => {
+            return globby(path, { onlyFiles: true });
+        }))).flat();
+
 
         // Filter out directories that are common prefixes.
         const uniquePaths = Array.from(new Set(paths))
-        // .filter((a, i, arr) => {
-        //     return a.at(-1) !== "/" || !arr.some((b, j) => i !== j && b.startsWith(a) && b.length > a.length)
-        // });
+            .filter((a, i, arr) => {
+                return a.at(-1) !== "/" || !arr.some((b, j) => i !== j && b.startsWith(a) && b.length > a.length)
+            });
+
+        console.log("uniquePaths:", uniquePaths.length);
+        console.log("pathsOnlyFiles:", pathsOnlyFiles.length);
 
         let filesUploaded = 0;
 
@@ -41,11 +47,12 @@ async function main() {
                 ContentLength: fileStats.size,
             });
 
-            await s3.send(putObjectCommand);
+            const response = await s3.send(putObjectCommand);
 
-            filesUploaded++;
-
-            console.info("Uploaded:", filePath);
+            if (response.$metadata.httpStatusCode === 200) {
+                filesUploaded++;
+                console.info("Uploaded:", filePath);
+            }
         }));
 
         console.log("### Total files uploaded:", filesUploaded, "###");
