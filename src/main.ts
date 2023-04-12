@@ -1,5 +1,6 @@
 import { join, posix } from "path";
 import { createReadStream } from "fs";
+import { stat } from "fs/promises";
 import { getInput, getMultilineInput, setFailed } from "@actions/core";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import globby from "globby";
@@ -13,14 +14,16 @@ async function main() {
         const prefix = getInput("prefix");
 
         const paths = (await Promise.all(path.map((path) => {
-            return globby(path, { onlyFiles: false, markDirectories: true });
+            return globby(path/* , { onlyFiles: false, markDirectories: true } */);
         }))).flat();
+
+        console.log("numPaths:", paths.length);
 
         // Filter out directories that are common prefixes.
         const uniquePaths = Array.from(new Set(paths))
-            .filter((a, i, arr) => {
-                return a.at(-1) !== "/" || !arr.some((b, j) => i !== j && b.startsWith(a) && b.length > a.length)
-            });
+        // .filter((a, i, arr) => {
+        //     return a.at(-1) !== "/" || !arr.some((b, j) => i !== j && b.startsWith(a) && b.length > a.length)
+        // });
 
         let filesUploaded = 0;
 
@@ -29,11 +32,13 @@ async function main() {
             const key = posix.join(prefix, path);
             const filePath = join(process.cwd(), path);
             const body = isDir ? undefined : createReadStream(filePath);
+            const fileStats = await stat(filePath);
 
             const putObjectCommand = new PutObjectCommand({
                 Bucket: bucket,
                 Key: key,
-                Body: body
+                Body: body,
+                ContentLength: fileStats.size,
             });
 
             await s3.send(putObjectCommand);
