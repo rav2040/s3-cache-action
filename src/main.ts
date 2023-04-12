@@ -16,7 +16,7 @@ async function main() {
 
         // Filter out directories that are common prefixes.
         const uniquePaths = Array.from(new Set(paths))
-            .filter((a, _, arr) => !arr.some((b) => a !== b && b.startsWith(a)));
+            .filter((a, i, arr) => !arr.some((b, j) => i !== j && b.startsWith(a) && b.length > a.length));
 
         const s3 = new S3Client({});
 
