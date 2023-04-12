@@ -17,19 +17,11 @@ async function main() {
             return globby(path, { onlyFiles: false, markDirectories: true });
         }))).flat();
 
-        const pathsOnlyFiles = (await Promise.all(path.map((path) => {
-            return globby(path, { onlyFiles: true });
-        }))).flat();
-
-
         // Filter out directories that are common prefixes.
         const uniquePaths = Array.from(new Set(paths))
             .filter((a, i, arr) => {
                 return a.at(-1) !== "/" || !arr.some((b, j) => i !== j && b.startsWith(a) && b.length > a.length)
             });
-
-        console.log("uniquePaths:", uniquePaths.length);
-        console.log("pathsOnlyFiles:", pathsOnlyFiles.length);
 
         let filesUploaded = 0;
 
