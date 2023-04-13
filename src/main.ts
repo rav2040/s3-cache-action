@@ -30,13 +30,13 @@ async function main() {
             const key = posix.join(prefix, path);
             const filePath = join(process.cwd(), path);
             const body = isDir ? undefined : createReadStream(filePath);
-            const fileStats = await stat(filePath);
+            const contentLength = isDir ? undefined : (await stat(filePath)).size;
 
             const putObjectCommand = new PutObjectCommand({
                 Bucket: bucket,
                 Key: key,
                 Body: body,
-                ContentLength: fileStats.size,
+                ContentLength: contentLength,
             });
 
             const response = await s3.send(putObjectCommand);
