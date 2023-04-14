@@ -26,7 +26,7 @@ async function main() {
             });
 
         if (archive) {
-            const key = posix.join(prefix, "archive.tgz");
+            const key = posix.join(prefix, "archive");
             const tarStream = tarCreate({ gzip: true }, uniquePaths);
 
             const putObjectCommand = new PutObjectCommand({
