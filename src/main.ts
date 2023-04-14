@@ -5,7 +5,7 @@ import { PassThrough } from "stream";
 import { getBooleanInput, getInput, getMultilineInput, setFailed } from "@actions/core";
 import { S3 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import { pack as tarPack } from "tar-fs";
+import { create as tarCreate } from "tar";
 import globby from "globby";
 
 
@@ -30,7 +30,7 @@ async function main() {
 
         if (archive) {
             const key = posix.join(prefix, "archive.tar");
-            const tarStream = tarPack("./", { entries: uniquePaths });
+            const tarStream = tarCreate({ gzip: true }, uniquePaths)
 
             const upload = new Upload({
                 client: s3,
@@ -42,7 +42,9 @@ async function main() {
             });
 
             upload.on("httpUploadProgress", (progress) => {
-                console.log(progress);
+                if (progress.loaded && progress.total) {
+                    console.log("Uploaded:", Math.round(progress.loaded / progress.total * 100) + "%");
+                }
             });
 
             await upload.done();
