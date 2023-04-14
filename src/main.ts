@@ -1,6 +1,7 @@
 import { join, posix } from "path";
 import { createReadStream } from "fs";
 import { stat } from "fs/promises";
+import { PassThrough } from "stream";
 import { getBooleanInput, getInput, getMultilineInput, setFailed } from "@actions/core";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { create as tarCreate } from "tar";
@@ -27,12 +28,12 @@ async function main() {
 
         if (archive) {
             const key = posix.join(prefix, "archive");
-            const tarStream = tarCreate({ gzip: true }, uniquePaths);
+            const tarStream = tarCreate({ gzip: true }, uniquePaths).pipe(new PassThrough());
 
             const putObjectCommand = new PutObjectCommand({
                 Bucket: bucket,
                 Key: key,
-                Body: "hello",
+                Body: tarStream,
             });
 
             const response = await s3.send(putObjectCommand);
