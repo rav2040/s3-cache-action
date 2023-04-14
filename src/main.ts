@@ -1,6 +1,7 @@
 import { join, posix } from "path";
 import { createReadStream } from "fs";
 import { stat } from "fs/promises";
+import { PassThrough } from "stream";
 import { getBooleanInput, getInput, getMultilineInput, setFailed } from "@actions/core";
 import { S3 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
@@ -36,7 +37,7 @@ async function main() {
                 params: {
                     Bucket: bucket,
                     Key: key,
-                    Body: tarStream,
+                    Body: tarStream.pipe(new PassThrough()),
                 },
             });
 
