@@ -2,29 +2,11 @@ import { join, posix } from "path";
 import { createReadStream } from "fs";
 import { stat } from "fs/promises";
 import { getBooleanInput, getInput, getMultilineInput, setFailed } from "@actions/core";
-import { S3Client, PutObjectCommand, S3 } from "@aws-sdk/client-s3";
-import { create as tarCreate } from "tar";
+import { S3 } from "@aws-sdk/client-s3";
+import { pack as tarPack } from "tar-fs";
 import globby from "globby";
 
 const s3 = new S3({});
-// Middleware added to client, applies to all commands.
-s3.middlewareStack.add(
-    (next) => async (args) => {
-        (args.request as any).headers["Transfer-Encoding"] = "gzip";
-        const result = await next(args);
-        // result.response contains data returned from next middleware.
-        return result;
-    },
-    {
-        step: "build",
-        name: "addTransferEncodingHeader",
-    }
-);
-
-// await client.putObject(params);
-
-// const s3 = new S3Client({});
-
 
 async function main() {
     try {
@@ -44,19 +26,17 @@ async function main() {
             });
 
         if (archive) {
-            const key = posix.join(prefix, "archive");
-            const tarStream = tarCreate({ gzip: true }, uniquePaths);
+            const key = posix.join(prefix, "archive.tar");
+            const tarStream = tarPack("./", { entries: uniquePaths });
 
             const response = await s3.putObject({
                 Bucket: bucket,
                 Key: key,
                 Body: tarStream,
-                ContentEncoding: "gzip",
-                ContentType: "application/x-compressed",
             });
 
             if (response.$metadata.httpStatusCode === 200) {
-                console.info("Uploaded archive:", "archive.tgz");
+                console.info("Uploaded archive:", "archive.tar");
             }
         } else {
             await uploadFiles(bucket, prefix, uniquePaths);
