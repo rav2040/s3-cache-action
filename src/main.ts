@@ -33,6 +33,7 @@ async function main() {
             const putObjectCommand = new PutObjectCommand({
                 Bucket: bucket,
                 Key: key,
+                ContentEncoding: "gzip",
                 Body: tarStream,
             });
 
