@@ -28,12 +28,11 @@ async function main() {
 
         if (archive) {
             const key = posix.join(prefix, "archive");
-            const tarStream = tarCreate({ gzip: true }, uniquePaths).pipe(new PassThrough());
+            const tarStream = tarCreate({ gzip: false }, uniquePaths).pipe(new PassThrough());
 
             const putObjectCommand = new PutObjectCommand({
                 Bucket: bucket,
                 Key: key,
-                ContentEncoding: "gzip",
                 Body: tarStream,
             });
 
