@@ -10,6 +10,10 @@ inputs:
   prefix:
     description: "Prefixed to all object names."
     required: false
+  archive:
+    type: boolean
+    description: "Upload all files as a single tar archive."
+    required: false
 runs:
   using: "node16"
   main: "lib/main.js"
