@@ -3,8 +3,10 @@ import { createReadStream } from "fs";
 import { stat } from "fs/promises";
 import { getBooleanInput, getInput, getMultilineInput, setFailed } from "@actions/core";
 import { S3 } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
 import { pack as tarPack } from "tar-fs";
 import globby from "globby";
+
 
 const s3 = new S3({});
 
@@ -29,15 +31,30 @@ async function main() {
             const key = posix.join(prefix, "archive.tar");
             const tarStream = tarPack("./", { entries: uniquePaths });
 
-            const response = await s3.putObject({
-                Bucket: bucket,
-                Key: key,
-                Body: tarStream,
+            const upload = new Upload({
+                client: s3,
+                params: {
+                    Bucket: bucket,
+                    Key: key,
+                    Body: tarStream,
+                },
             });
 
-            if (response.$metadata.httpStatusCode === 200) {
-                console.info("Uploaded archive:", "archive.tar");
-            }
+            upload.on("httpUploadProgress", (progress) => {
+                console.log(progress);
+            });
+
+            await upload.done();
+
+            // const response = await s3.putObject({
+            //     Bucket: bucket,
+            //     Key: key,
+            //     Body: tarStream,
+            // });
+
+            // if (response.$metadata.httpStatusCode === 200) {
+            //     console.info("Uploaded archive:", "archive.tar");
+            // }
         } else {
             await uploadFiles(bucket, prefix, uniquePaths);
         }
