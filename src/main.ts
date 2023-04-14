@@ -32,7 +32,7 @@ async function main() {
             const putObjectCommand = new PutObjectCommand({
                 Bucket: bucket,
                 Key: key,
-                Body: tarStream,
+                Body: "hello",
             });
 
             const response = await s3.send(putObjectCommand);
