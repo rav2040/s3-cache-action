@@ -34,7 +34,8 @@ async function main() {
                 Bucket: bucket,
                 Key: key,
                 Body: tarStream,
-                ContentType: "application/x-compressed"
+                ContentEncoding: "gzip",
+                ContentType: "application/x-compressed",
             });
 
             const response = await s3.send(putObjectCommand);
@@ -46,6 +47,8 @@ async function main() {
             await uploadFiles(bucket, prefix, uniquePaths);
         }
     } catch (err) {
+        console.log(">>>>>>>>>>ERROR");
+        console.log(err);
         if (err instanceof Error) setFailed(err);
     }
 }
