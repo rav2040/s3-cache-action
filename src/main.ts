@@ -28,12 +28,13 @@ async function main() {
 
         if (archive) {
             const key = posix.join(prefix, "archive");
-            const tarStream = tarCreate({ gzip: false }, uniquePaths).pipe(new PassThrough());
+            const tarStream = tarCreate({ gzip: true }, uniquePaths);
 
             const putObjectCommand = new PutObjectCommand({
                 Bucket: bucket,
                 Key: key,
                 Body: tarStream,
+                ContentType: "application/x-compressed"
             });
 
             const response = await s3.send(putObjectCommand);
